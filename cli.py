@@ -189,6 +189,7 @@ def add_order(session):
     view_customers(session)  # Show customers
     try:
         customer_id = int(input("Enter customer ID: ").strip())  # Get customer ID
+        print(f"Selected Customer ID: {customer_id}")
     except ValueError:
         print("Invalid input.")
         return
@@ -201,6 +202,7 @@ def add_order(session):
     view_menu(session)  # Show menu
     try:
         item_id = int(input("Enter menu item ID: ").strip())  # Get item ID
+        print(f"Selected Menu Item ID: {item_id}")
     except ValueError:
         print("Invalid input.")
         return
@@ -210,7 +212,18 @@ def add_order(session):
         print("Invalid menu item.")
         return
 
-    new_order = Order(customer_id=customer.id, menu_item_id=item.id, status="Pending")  # Create order
+    try:
+        quantity = int(input("Enter quantity: ").strip())  # Get quantity
+        if quantity <= 0:
+            print("Quantity must be greater than 0.")
+            return
+    except ValueError:
+        print("Invalid input. Quantity must be a number.")
+        return
+
+    new_order = Order(customer_id=customer.id, menu_item_id=item.id, quantity=quantity, status="Pending")  # Create order
+    print(f"New Order: Customer ID = {new_order.customer_id}, Menu Item ID = {new_order.menu_item_id}, Quantity = {new_order.quantity}, Status = {new_order.status}")
+
     session.add(new_order)
     try:
         session.commit()
