@@ -16,7 +16,7 @@ def get_session():
     return SessionLocal()
 
 def init_db():
-    from models import Customer, MenuItem, Order  # Import models here to avoid circular import
+    from models import Customer, MenuItem, Order  # I Import models here to avoid circular import
     Base.metadata.create_all(bind=engine)
 
 if __name__ == "__main__":
