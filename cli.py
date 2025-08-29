@@ -1,85 +1,93 @@
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-from models import Customer, MenuItem, Order
+# Import necessary modules from SQLAlchemy
+from sqlalchemy.orm import sessionmaker  # To create sessions for interacting with the database
+from sqlalchemy import create_engine  # To create the database engine (connection)
+from models import Customer, MenuItem, Order  # Import the ORM models (tables)
 
 # Database setup
-engine = create_engine("sqlite:///restaurant.db")
-Session = sessionmaker(bind=engine)
+engine = create_engine("sqlite:///restaurant.db")  # Create a SQLite database called restaurant.db
+Session = sessionmaker(bind=engine)  # Bind the sessionmaker to the engine to manage transactions
 
 # ---------- CUSTOMER FUNCTIONS ----------
-def add_customer(session):
-    print("\n--- Add New Customer ---")
-    name = input("Enter customer name: ").strip()
-    email = input("Enter customer email: ").strip()
-    phone = input("Enter customer phone: ").strip()
 
+def add_customer(session):
+    print("\n--- Add New Customer ---")  # Display section header
+    name = input("Enter customer name: ").strip()  # Get name from user
+    email = input("Enter customer email: ").strip()  # Get email from user
+    phone = input("Enter customer phone: ").strip()  # Get phone from user
+
+    # Validate required fields
     if not name or not email:
         print("Name and email are required.")
         return
 
+    # Check if email already exists in database
     if session.query(Customer).filter_by(email=email).first():
         print("Email already exists. Try again.")
         return
 
+    # Create new customer object
     new_customer = Customer(name=name, email=email, phone=phone)
-    session.add(new_customer)
+    session.add(new_customer)  # Add to session
     try:
-        session.commit()
+        session.commit()  # Save changes to database
         print(f"Customer '{name}' added successfully!")
     except Exception as e:
-        session.rollback()
+        session.rollback()  # Undo changes if error occurs
         print(f"Error adding customer: {e}")
 
 def view_customers(session):
     print("\n--- All Customers ---")
-    customers = session.query(Customer).all()
+    customers = session.query(Customer).all()  # Fetch all customers
     if not customers:
         print("No customers found.")
     else:
-        for c in customers:
+        for c in customers:  # Loop through customers and display
             print(f"[{c.id}] {c.name} | {c.email} | {c.phone}")
 
 def update_customer(session):
-    view_customers(session)
+    view_customers(session)  # Show current customers
     try:
-        customer_id = int(input("Enter customer ID to update: ").strip())
+        customer_id = int(input("Enter customer ID to update: ").strip())  # Get ID
     except ValueError:
         print("Invalid input. ID must be a number.")
         return
 
-    customer = session.get(Customer, customer_id)
+    customer = session.get(Customer, customer_id)  # Fetch customer by ID
     if not customer:
         print("Customer not found.")
         return
 
+    # Prompt user for new details (leave blank to keep old value)
     new_name = input(f"New name (leave blank to keep '{customer.name}'): ").strip()
     new_email = input(f"New email (leave blank to keep '{customer.email}'): ").strip()
     new_phone = input(f"New phone (leave blank to keep '{customer.phone}'): ").strip()
 
+    # Update fields if user provided new values
     if new_name: customer.name = new_name
     if new_email: customer.email = new_email
     if new_phone: customer.phone = new_phone
 
     try:
-        session.commit()
+        session.commit()  # Save changes
         print("Customer updated successfully!")
     except Exception as e:
         session.rollback()
         print(f"Error updating customer: {e}")
 
 def delete_customer(session):
-    view_customers(session)
+    view_customers(session)  # Show customers
     try:
-        customer_id = int(input("Enter customer ID to delete: ").strip())
+        customer_id = int(input("Enter customer ID to delete: ").strip())  # Get ID
     except ValueError:
         print("Invalid input. ID must be a number.")
         return
 
-    customer = session.get(Customer, customer_id)
+    customer = session.get(Customer, customer_id)  # Fetch customer
     if not customer:
         print("Customer not found.")
         return
-    session.delete(customer)
+
+    session.delete(customer)  # Delete customer
     try:
         session.commit()
         print("Customer deleted successfully!")
@@ -88,13 +96,14 @@ def delete_customer(session):
         print(f"Error deleting customer: {e}")
 
 # ---------- MENU ITEM FUNCTIONS ----------
+
 def add_menu_item(session):
     print("\n--- Add New Menu Item ---")
-    name = input("Enter item name: ").strip()
-    price = input("Enter price: ").strip()
+    name = input("Enter item name: ").strip()  # Get item name
+    price = input("Enter price: ").strip()  # Get price
 
     try:
-        price = float(price)
+        price = float(price)  # Convert to float
     except ValueError:
         print("Invalid price. Must be a number.")
         return
@@ -103,7 +112,7 @@ def add_menu_item(session):
         print("Item name is required.")
         return
 
-    new_item = MenuItem(name=name, price=price)
+    new_item = MenuItem(name=name, price=price)  # Create menu item
     session.add(new_item)
     try:
         session.commit()
@@ -114,17 +123,17 @@ def add_menu_item(session):
 
 def view_menu(session):
     print("\n--- Menu Items ---")
-    items = session.query(MenuItem).all()
+    items = session.query(MenuItem).all()  # Fetch all menu items
     if not items:
         print("No menu items found.")
     else:
         for i in items:
-            print(f"[{i.id}] {i.name} - ${i.price:.2f}")
+            print(f"[{i.id}] {i.name} - Ksh{i.price * 140:.2f}")
 
 def update_menu_item(session):
     view_menu(session)
     try:
-        item_id = int(input("Enter item ID to update: ").strip())
+        item_id = int(input("Enter item ID to update: ").strip())  # Get ID
     except ValueError:
         print("Invalid input. ID must be a number.")
         return
@@ -155,7 +164,7 @@ def update_menu_item(session):
 def delete_menu_item(session):
     view_menu(session)
     try:
-        item_id = int(input("Enter item ID to delete: ").strip())
+        item_id = int(input("Enter item ID to delete: ").strip())  # Get ID
     except ValueError:
         print("Invalid input. ID must be a number.")
         return
@@ -164,6 +173,7 @@ def delete_menu_item(session):
     if not item:
         print("Menu item not found.")
         return
+
     session.delete(item)
     try:
         session.commit()
@@ -173,31 +183,34 @@ def delete_menu_item(session):
         print(f"Error deleting menu item: {e}")
 
 # ---------- ORDER FUNCTIONS ----------
+
 def add_order(session):
     print("\n--- Add New Order ---")
-    view_customers(session)
+    view_customers(session)  # Show customers
     try:
-        customer_id = int(input("Enter customer ID: ").strip())
+        customer_id = int(input("Enter customer ID: ").strip())  # Get customer ID
     except ValueError:
         print("Invalid input.")
         return
+
     customer = session.get(Customer, customer_id)
     if not customer:
         print("Invalid customer.")
         return
 
-    view_menu(session)
+    view_menu(session)  # Show menu
     try:
-        item_id = int(input("Enter menu item ID: ").strip())
+        item_id = int(input("Enter menu item ID: ").strip())  # Get item ID
     except ValueError:
         print("Invalid input.")
         return
+
     item = session.get(MenuItem, item_id)
     if not item:
         print("Invalid menu item.")
         return
 
-    new_order = Order(customer_id=customer.id, menu_item_id=item.id, status="Pending")
+    new_order = Order(customer_id=customer.id, menu_item_id=item.id, status="Pending")  # Create order
     session.add(new_order)
     try:
         session.commit()
@@ -208,7 +221,7 @@ def add_order(session):
 
 def view_orders(session):
     print("\n--- All Orders ---")
-    orders = session.query(Order).all()
+    orders = session.query(Order).all()  # Fetch all orders
     if not orders:
         print("No orders found.")
     else:
@@ -220,10 +233,11 @@ def view_orders(session):
 def update_order_status(session):
     view_orders(session)
     try:
-        order_id = int(input("Enter order ID to update: ").strip())
+        order_id = int(input("Enter order ID to update: ").strip())  # Get order ID
     except ValueError:
         print("Invalid input.")
         return
+
     order = session.get(Order, order_id)
     if not order:
         print("Order not found.")
@@ -245,14 +259,16 @@ def update_order_status(session):
 def delete_order(session):
     view_orders(session)
     try:
-        order_id = int(input("Enter order ID to delete: ").strip())
+        order_id = int(input("Enter order ID to delete: ").strip())  # Get order ID
     except ValueError:
         print("Invalid input.")
         return
+
     order = session.get(Order, order_id)
     if not order:
         print("Order not found.")
         return
+
     session.delete(order)
     try:
         session.commit()
@@ -262,10 +278,11 @@ def delete_order(session):
         print(f"Error deleting order: {e}")
 
 # ---------- MAIN MENU ----------
+
 def main():
-    session = Session()
+    session = Session()  # Create a session for DB operations
     while True:
-        print("\n===== Restaurant Ordering System =====")
+        print("\n===== Restaurant Ordering System =====")  # Main menu
         print("1. Manage Customers")
         print("2. Manage Menu Items")
         print("3. Manage Orders")
@@ -284,6 +301,7 @@ def main():
         else:
             print("Invalid choice. Try again.")
 
+# Submenu for customers
 def manage_customers(session):
     while True:
         print("\n--- Manage Customers ---")
@@ -301,6 +319,7 @@ def manage_customers(session):
         elif choice == "0": break
         else: print("Invalid choice.")
 
+# Submenu for menu items
 def manage_menu_items(session):
     while True:
         print("\n--- Manage Menu Items ---")
@@ -318,6 +337,7 @@ def manage_menu_items(session):
         elif choice == "0": break
         else: print("Invalid choice.")
 
+# Submenu for orders
 def manage_orders(session):
     while True:
         print("\n--- Manage Orders ---")
@@ -335,5 +355,6 @@ def manage_orders(session):
         elif choice == "0": break
         else: print("Invalid choice.")
 
+# Entry point of the program
 if __name__ == "__main__":
     main()
